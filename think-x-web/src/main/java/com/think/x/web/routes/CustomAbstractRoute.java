@@ -46,17 +46,5 @@ public abstract class CustomAbstractRoute {
         return body;
     }
 
-    /**
-     * 参数校验
-     * <p>
-     * //     * @param ctx
-     */
-//    ValidationHandler<RequestBody> verify(RoutingContext ctx) {
-//        return body -> {
-//            if (body.isEmpty()) {
-//                ctx.response().end(Result.fail("参数不能为空").toString());
-//            }
-//        };
-//    }
     public abstract void init();
 }
