@@ -2,7 +2,10 @@ package com.think.x.orm.repository;
 
 import com.google.inject.Inject;
 import com.think.x.core.base.domain.BaseEntity;
+import com.think.x.core.base.params.PageData;
+import com.think.x.core.base.params.PageParams;
 import io.smallrye.mutiny.Uni;
+import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.impl.future.PromiseImpl;
@@ -110,7 +113,7 @@ public abstract class MyRepository<T extends BaseEntity<E>, E extends Serializab
 
     @Nullable
     @Override
-    public Future<List<T>> createQueryList(@NotNull String sql,@NotNull Map<String, ?> params) {
+    public Future<List<T>> createQueryList(@NotNull String sql, @NotNull Map<String, ?> params) {
         Promise<List<T>> promise = new PromiseImpl<>();
         sessionFactory.withTransaction((session, transaction) -> {
                     Mutiny.Query<T> query = session.createQuery(sql, target);
@@ -147,4 +150,50 @@ public abstract class MyRepository<T extends BaseEntity<E>, E extends Serializab
                 .with(promise::complete, promise::fail);
         return promise.future();
     }
+
+    @Override
+    public Future<Long> queryPageCount(@NotNull String sql, @NotNull PageParams params) {
+        Promise<Long> promise = new PromiseImpl<>();
+        StringBuilder countSql = new StringBuilder();
+        if (sql.toLowerCase().startsWith("select")) {
+            countSql.append("select count(1) from ").append("(").append(sql).append(")");
+        } else {
+            countSql.append("select count(1) ").append(sql);
+        }
+        sessionFactory.withSession((session) -> {
+            Mutiny.Query<Long> query = session.createQuery(countSql.toString());
+            params.getParams().forEach(query::setParameter);
+            return query.getSingleResultOrNull();
+        }).subscribe().with(promise::complete, promise::fail);
+        return promise.future();
+
+    }
+
+    @Override
+    public Future<List<T>> queryPageResult(@NotNull String sql, @NotNull PageParams params) {
+        Promise<List<T>> promise = new PromiseImpl<>();
+        sessionFactory.withSession(session -> {
+            Mutiny.Query<T> query = session.createQuery(sql, target);
+            params.getParams().forEach(query::setParameter);
+            query.setFirstResult((params.getCurrent() - 1) * params.getSize()).setMaxResults(params.getSize());
+            return query.getResultList();
+        }).subscribe().with(promise::complete, promise::fail);
+        return promise.future();
+    }
+
+    @Override
+    public Future<PageData<T>> queryPage(@NotNull String sql, @NotNull PageParams params) {
+        Promise<PageData<T>> promise = new PromiseImpl<>();
+        PageData<T> pageData = new PageData<>(params.getCurrent(), params.getSize());
+        CompositeFuture.all(this.queryPageCount(sql, params)
+                                .onSuccess(pageData::setTotal)
+                                .onFailure(promise::fail),
+                        this.queryPageResult(sql, params)
+                                .onSuccess(pageData::setRecords)
+                                .onFailure(promise::fail))
+                .onSuccess(it -> promise.complete(pageData))
+                .onFailure(promise::fail);
+        return promise.future();
+    }
+
 }

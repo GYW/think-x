@@ -1,9 +1,14 @@
 package com.think.x.core.base.result;
 
 
+import com.think.x.core.base.params.IPage;
+import com.think.x.core.base.params.PageData;
 import com.think.x.core.exception.BaseExceptionCode;
 import com.think.x.core.exception.BizException;
 import io.vertx.core.json.Json;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
 import java.io.Serializable;
 
@@ -11,7 +16,10 @@ import java.io.Serializable;
 /**
  * @createTime 2023-02-22 10:55
  */
-
+@Getter
+@Setter
+@SuppressWarnings("ALL")
+@Accessors(chain = true)
 public class Result<T> implements Serializable {
     public static final String DEF_ERROR_MESSAGE = "系统繁忙，请稍候再试";
     public static final String HYSTRIX_ERROR_MESSAGE = "请求超时，请稍候再试";
@@ -164,6 +172,10 @@ public class Result<T> implements Serializable {
         return fail(TIMEOUT_CODE, HYSTRIX_ERROR_MESSAGE);
     }
 
+    public static <E> Result<PageData<E>> pageDataResult(IPage page) {
+        return Result.success(PageData.toPageData(page));
+    }
+
     /**
      * 逻辑处理是否成功
      *
@@ -172,34 +184,8 @@ public class Result<T> implements Serializable {
     public boolean getIsSuccess() {
         return SUCCESS_CODE.equals(this.code);
     }
-
-
     @Override
     public String toString() {
         return Json.encodePrettily(this);
-    }
-
-    public String getCode() {
-        return code;
-    }
-
-    public void setCode(String code) {
-        this.code = code;
-    }
-
-    public T getData() {
-        return data;
-    }
-
-    public void setData(T data) {
-        this.data = data;
-    }
-
-    public String getMsg() {
-        return msg;
-    }
-
-    public void setMsg(String msg) {
-        this.msg = msg;
     }
 }

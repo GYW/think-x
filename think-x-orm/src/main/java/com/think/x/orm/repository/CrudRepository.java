@@ -1,6 +1,8 @@
 package com.think.x.orm.repository;
 
 import com.think.x.core.base.domain.BaseEntity;
+import com.think.x.core.base.params.PageData;
+import com.think.x.core.base.params.PageParams;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.Future;
 import org.hibernate.reactive.mutiny.Mutiny;
@@ -77,4 +79,13 @@ public interface CrudRepository<T extends BaseEntity<E>, E extends Serializable>
 
     @Nullable
     Future<T> createQuery(BiFunction<Mutiny.Session, Mutiny.Transaction, Uni<T>> execution);
+
+    @Nullable
+    Future<Long> queryPageCount(@NotNull String sql, @NotNull PageParams params);
+
+    @Nullable
+    Future<List<T>> queryPageResult(@NotNull String sql, @NotNull PageParams params);
+
+    @Nullable
+    Future<PageData<T>> queryPage(@NotNull String sql, @NotNull PageParams params);
 }

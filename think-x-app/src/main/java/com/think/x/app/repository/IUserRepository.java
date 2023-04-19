@@ -1,6 +1,8 @@
 package com.think.x.app.repository;
 
 import com.think.x.app.domain.SysUser;
+import com.think.x.core.base.params.PageData;
+import com.think.x.core.base.params.PageParams;
 import io.vertx.core.Future;
 
 import java.util.List;
@@ -23,4 +25,6 @@ public interface IUserRepository {
     Future<SysUser> getOneByName(String username);
 
     Future<List<SysUser>> queryUsers();
+
+    Future<PageData<SysUser>> queryPageUsers(PageParams pageParams);
 }

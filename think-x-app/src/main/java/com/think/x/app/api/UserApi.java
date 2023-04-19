@@ -5,6 +5,8 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.think.x.app.domain.SysUser;
 import com.think.x.app.repository.IUserRepository;
+import com.think.x.core.base.params.PageData;
+import com.think.x.core.base.params.PageParams;
 import com.think.x.core.base.result.Result;
 import com.think.x.web.routes.CustomAbstractRoute;
 import io.vertx.core.Future;
@@ -51,10 +53,23 @@ public class UserApi extends CustomAbstractRoute {
 
     @Override
     public void init() {
+        queryPage();
         queryUserInfo();
         queryUsers();
         saveUser();
         //TODO:: 增加API路由
+    }
+
+    /**
+     * 分页查询分页列表
+     */
+    private void queryPage() {
+        router.get("/api/user/pages").handler(ctx -> {
+            Future<PageData<SysUser>> pages = userRepository.queryPageUsers(new PageParams());
+            pages.onSuccess(pageData -> {
+                ctx.response().end(Result.pageDataResult(pageData).toString());
+            }).onFailure(this.failureThrowableHandler(ctx));
+        });
     }
 
     /**
