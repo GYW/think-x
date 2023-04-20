@@ -27,4 +27,12 @@ public interface IUserRepository {
     Future<List<SysUser>> queryUsers();
 
     Future<PageData<SysUser>> queryPageUsers(PageParams pageParams);
+
+    Future<Integer> update(SysUser sysUser);
+
+    Future<Integer> deleteById(String id);
+
+    Future<Void> remove(SysUser sysUser);
+
+
 }

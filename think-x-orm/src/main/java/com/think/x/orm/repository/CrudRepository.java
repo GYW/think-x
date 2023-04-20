@@ -27,19 +27,19 @@ import java.util.function.BiFunction;
  */
 public interface CrudRepository<T extends BaseEntity<E>, E extends Serializable> {
     @Nullable
-    <T> Future withTransaction(@NotNull BiFunction<Mutiny.Session, Mutiny.Transaction, Uni<T>> execution);
+    Future<T> execute(@NotNull BiFunction<Mutiny.Session, Mutiny.Transaction, Uni<T>> execution);
 
     @Nullable
     Future<T> save(@NotNull T entity);
 
     @Nullable
-    Future<Boolean> remove(@NotNull T entity);
+    Future<Void> remove(@NotNull T entity);
 
     @Nullable
     Future<Boolean> batchSave(@NotNull Collection<T> entities);
 
     @Nullable
-    Future<Boolean> delete(@Nullable E id);
+    Future<Integer> delete(@Nullable E id);
 
     @Nullable
     Future<Boolean> exists(@Nullable E id);
@@ -75,7 +75,7 @@ public interface CrudRepository<T extends BaseEntity<E>, E extends Serializable>
      * @return
      */
     @Nullable
-    Future<Integer> execute(@NotNull String sql, @NotNull Map<String, ?> params);
+    Future<Integer> update(@NotNull String sql, @NotNull Map<String, ?> params) ;
 
     @Nullable
     Future<T> createQuery(BiFunction<Mutiny.Session, Mutiny.Transaction, Uni<T>> execution);

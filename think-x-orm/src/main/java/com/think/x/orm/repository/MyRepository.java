@@ -16,6 +16,8 @@ import org.hibernate.reactive.mutiny.Mutiny;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaDelete;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -52,9 +54,9 @@ public abstract class MyRepository<T extends BaseEntity<E>, E extends Serializab
         this.sessionFactory = sessionFactory;
     }
 
-    @Nullable
     @Override
-    public <T> Future withTransaction(@NotNull BiFunction<Mutiny.Session, Mutiny.Transaction, Uni<T>> execution) {
+    @Nullable
+    public Future<T> execute(@NotNull BiFunction<Mutiny.Session, Mutiny.Transaction, Uni<T>> execution) {
         Promise<T> promise = new PromiseImpl<T>();
         sessionFactory.withTransaction((session, transaction) -> {
                     return execution.apply(session, transaction)
@@ -67,7 +69,7 @@ public abstract class MyRepository<T extends BaseEntity<E>, E extends Serializab
     @Nullable
     @Override
     public Future<T> save(@NotNull T entity) {
-        return withTransaction((session, transaction) -> {
+        return execute((session, transaction) -> {
             return session.find(entity.getClass(), entity.getId())
                     .chain((t) -> {
                         if (Objects.isNull(t)) {
@@ -83,8 +85,25 @@ public abstract class MyRepository<T extends BaseEntity<E>, E extends Serializab
 
     @Nullable
     @Override
-    public Future<Boolean> remove(@NotNull T entity) {
-        return null;
+    public Future<Integer> update(@NotNull String sql, @NotNull Map<String, ?> params) {
+        Promise<Integer> promise = new PromiseImpl<>();
+        sessionFactory.withTransaction((session, transaction) -> {
+            Mutiny.Query<Integer> query = session.createQuery(sql);
+            params.forEach(query::setParameter);
+            return query.executeUpdate().call(session::flush);
+        }).subscribe().with(promise::complete, promise::fail);
+        return promise.future();
+    }
+
+    @Nullable
+    @Override
+    public Future<Void> remove(@NotNull T entity) {
+        Promise<Void> promise = new PromiseImpl<>();
+        sessionFactory.withTransaction((session, transaction) -> {
+                    return session.remove(entity).call(session::flush);
+                }).subscribe()
+                .with(promise::complete, promise::fail);
+        return promise.future();
     }
 
     @Nullable
@@ -95,8 +114,14 @@ public abstract class MyRepository<T extends BaseEntity<E>, E extends Serializab
 
     @Nullable
     @Override
-    public Future<Boolean> delete(@Nullable E id) {
-        return null;
+    public Future<Integer> delete(@Nullable E id) {
+        Promise<Integer> promise = new PromiseImpl<>();
+        sessionFactory.withTransaction((session, transaction) -> {
+            Mutiny.Query<Integer> query = session.createQuery("delete from " + target.getName() + " where id =: id");
+            query.setParameter("id", id);
+            return query.executeUpdate().call(session::flush);
+        }).subscribe().with(promise::complete, promise::fail);
+        return promise.future();
     }
 
     @Nullable
@@ -133,12 +158,6 @@ public abstract class MyRepository<T extends BaseEntity<E>, E extends Serializab
             params.forEach(query::setParameter);
             return query.getSingleResultOrNull();
         });
-    }
-
-    @Nullable
-    @Override
-    public Future<Integer> execute(@NotNull String sql, @NotNull Map<String, ?> params) {
-        return null;
     }
 
     @Nullable

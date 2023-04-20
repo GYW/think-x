@@ -57,7 +57,46 @@ public class UserApi extends CustomAbstractRoute {
         queryUserInfo();
         queryUsers();
         saveUser();
+        updateUser();
+        deleteUser();
         //TODO:: 增加API路由
+    }
+
+    private void deleteUser() {
+        ObjectSchemaBuilder bodySchema = objectSchema()
+                .requiredProperty("id", stringSchema().nullable());
+
+        router.post("/api/user/delete").handler(
+                ValidationHandlerBuilder.create(schemaParser)
+                        .predicate(RequestPredicate.BODY_REQUIRED)
+                        .body(Bodies.json(bodySchema))
+                        .build()
+        ).handler(ctx -> {
+            RequestBody body = valid(ctx);
+            SysUser sysUser = body.asPojo(SysUser.class);
+            Future<Integer> sysUserFuture = userRepository.deleteById(sysUser.getId());
+            sysUserFuture.onSuccess(users -> {
+                ctx.response().end(Result.success().toString());
+            }).onFailure(this.failureThrowableHandler(ctx));
+        });
+    }
+
+    private void updateUser() {
+        ObjectSchemaBuilder bodySchema = objectSchema()
+                .requiredProperty("id", stringSchema().nullable());
+        router.post("/api/user/update").handler(
+                ValidationHandlerBuilder.create(schemaParser)
+                        .predicate(RequestPredicate.BODY_REQUIRED)
+                        .body(Bodies.json(bodySchema))
+                        .build()
+        ).handler(ctx -> {
+            RequestBody body = valid(ctx);
+            SysUser sysUser = body.asPojo(SysUser.class);
+            Future<Integer> sysUserFuture = userRepository.update(sysUser);
+            sysUserFuture.onSuccess(users -> {
+                ctx.response().end(Result.success().toString());
+            }).onFailure(this.failureThrowableHandler(ctx));
+        });
     }
 
     /**

@@ -1,3 +1,20 @@
+POST http://localhost:8888/api/user/delete
+Content-Type: application/json
+
+{
+  "id": "9731018007248896"
+}
+
+###
+POST http://localhost:8888/api/user/update
+Content-Type: application/json
+
+{
+  "id": "9731018007248896",
+  "mobile": "18899999908"
+}
+
+###
 POST http://localhost:8888/api/user/save
 Content-Type: application/json
 
