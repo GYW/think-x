@@ -1,3 +1,24 @@
+POST http://localhost:8888/api/user/saveBatch
+Content-Type: application/json
+
+[
+{
+   "createdTime" : "2023-02-24 10:11:08",
+    "createdBy" : null,
+    "updatedTime" : "2023-02-24 10:11:08",
+    "updatedBy" : null,
+    "username" : {{$timestamp}},
+    "mobile" : "19999999903"
+}, {"createdTime" : "2023-02-24 10:11:08",
+    "createdBy" : null,
+    "updatedTime" : "2023-02-24 10:11:08",
+    "updatedBy" : null,
+    "username" : {{$timestamp}},
+    "mobile" : "19999999904"
+}
+]
+
+###
 POST http://localhost:8888/api/user/delete
 Content-Type: application/json
 
@@ -30,6 +51,7 @@ Content-Type: application/json
 ###
 GET http://localhost:8888/api/user/info
 Content-Type: application/json
+#trace-id: "sssessssssjieowejwe"
 
 {
   "username": "gyw"
@@ -40,7 +62,6 @@ GET http://localhost:8888/api/user/list
 Content-Type: application/json
 
 {
-
 }
 
 ###
@@ -48,7 +69,6 @@ GET http://localhost:8888/api/user/pages
 Content-Type: application/json
 
 {
-
 }
 
 

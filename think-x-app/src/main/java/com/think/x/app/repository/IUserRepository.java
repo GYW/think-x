@@ -5,6 +5,7 @@ import com.think.x.core.base.params.PageData;
 import com.think.x.core.base.params.PageParams;
 import io.vertx.core.Future;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -28,11 +29,11 @@ public interface IUserRepository {
 
     Future<PageData<SysUser>> queryPageUsers(PageParams pageParams);
 
-    Future<Integer> update(SysUser sysUser);
+    Future<Boolean> update(SysUser sysUser);
 
-    Future<Integer> deleteById(String id);
+    Future<Boolean> deleteById(String id);
 
     Future<Void> remove(SysUser sysUser);
 
-
+    Future<List<SysUser>> saveBatch(List<SysUser> collect);
 }

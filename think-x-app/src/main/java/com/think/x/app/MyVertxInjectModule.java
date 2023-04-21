@@ -3,9 +3,9 @@ package com.think.x.app;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
+import com.think.x.app.api.UserApi;
 import com.think.x.app.repository.IUserRepository;
 import com.think.x.app.repository.impl.UserRepository;
-import com.think.x.app.api.UserApi;
 import com.think.x.core.base.id.SnowFlakeIdWorker;
 import com.think.x.core.exception.GlobalExceptionHandler;
 import com.think.x.web.routes.CustomAbstractRoute;
@@ -38,6 +38,7 @@ public class MyVertxInjectModule extends AbstractModule {
     protected void configure() {
         this.bind(IUserRepository.class).to(UserRepository.class).asEagerSingleton();
         this.bind(CustomAbstractRoute.class).to(UserApi.class);
+        //TODO:: api class should be bindable CustomAbstractRoute
     }
 
     @Provides

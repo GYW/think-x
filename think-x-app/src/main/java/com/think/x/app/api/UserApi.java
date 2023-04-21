@@ -10,6 +10,8 @@ import com.think.x.core.base.params.PageParams;
 import com.think.x.core.base.result.Result;
 import com.think.x.web.routes.CustomAbstractRoute;
 import io.vertx.core.Future;
+import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RequestBody;
 import io.vertx.ext.web.Router;
@@ -20,8 +22,11 @@ import io.vertx.json.schema.SchemaParser;
 import io.vertx.json.schema.common.dsl.ObjectSchemaBuilder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static io.vertx.json.schema.common.dsl.Keywords.maxLength;
 import static io.vertx.json.schema.common.dsl.Keywords.minLength;
@@ -59,7 +64,20 @@ public class UserApi extends CustomAbstractRoute {
         saveUser();
         updateUser();
         deleteUser();
+        saveBatch();
         //TODO:: 增加API路由
+    }
+
+    private void saveBatch() {
+        router.post("/api/user/saveBatch").handler(ctx -> {
+            RequestBody body = valid(ctx);
+            JsonArray jsonArray = body.asJsonArray();
+            List<SysUser> collect = jsonArray.stream().map(json -> Json.decodeValue(Json.encode(json), SysUser.class)).collect(Collectors.toList());
+            Future<List<SysUser>> collection = userRepository.saveBatch(collect);
+            collection.onSuccess(users -> {
+                ctx.response().end(Result.success(users).toString());
+            }).onFailure(this.failureThrowableHandler(ctx));
+        });
     }
 
     private void deleteUser() {
@@ -74,9 +92,9 @@ public class UserApi extends CustomAbstractRoute {
         ).handler(ctx -> {
             RequestBody body = valid(ctx);
             SysUser sysUser = body.asPojo(SysUser.class);
-            Future<Integer> sysUserFuture = userRepository.deleteById(sysUser.getId());
-            sysUserFuture.onSuccess(users -> {
-                ctx.response().end(Result.success().toString());
+            Future<Boolean> sysUserFuture = userRepository.deleteById(sysUser.getId());
+            sysUserFuture.onSuccess(bool -> {
+                ctx.response().end(Result.success(bool).toString());
             }).onFailure(this.failureThrowableHandler(ctx));
         });
     }
@@ -92,9 +110,9 @@ public class UserApi extends CustomAbstractRoute {
         ).handler(ctx -> {
             RequestBody body = valid(ctx);
             SysUser sysUser = body.asPojo(SysUser.class);
-            Future<Integer> sysUserFuture = userRepository.update(sysUser);
-            sysUserFuture.onSuccess(users -> {
-                ctx.response().end(Result.success().toString());
+            Future<Boolean> sysUserFuture = userRepository.update(sysUser);
+            sysUserFuture.onSuccess(bool -> {
+                ctx.response().end(Result.success(bool).toString());
             }).onFailure(this.failureThrowableHandler(ctx));
         });
     }
@@ -123,11 +141,13 @@ public class UserApi extends CustomAbstractRoute {
                         .body(Bodies.json(bodySchema))
                         .build())
                 .handler(ctx -> {
+                    log.info("user info ,{}", ctx);
                     RequestBody body = valid(ctx);
                     JsonObject params = body.asJsonObject();
                     String username = params.getString("username");
                     Future<SysUser> one = userRepository.getOneByName(username);
                     one.onSuccess(sysUser -> {
+                        log.info("user info ,{}", sysUser);
                         ctx.response().end(Result.success(sysUser).toString());
                     }).onFailure(this.failureThrowableHandler(ctx));
                 });
@@ -149,8 +169,8 @@ public class UserApi extends CustomAbstractRoute {
             RequestBody body = valid(ctx);
             SysUser sysUser = body.asPojo(SysUser.class);
             Future<SysUser> sysUserFuture = userRepository.save(sysUser);
-            sysUserFuture.onSuccess(users -> {
-                ctx.response().end(Result.success().toString());
+            sysUserFuture.onSuccess(user -> {
+                ctx.response().end(Result.success(user).toString());
             }).onFailure(this.failureThrowableHandler(ctx));
         });
     }

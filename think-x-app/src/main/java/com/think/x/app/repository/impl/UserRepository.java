@@ -8,6 +8,7 @@ import com.think.x.core.base.params.PageParams;
 import com.think.x.orm.repository.MyRepository;
 import io.vertx.core.Future;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -48,12 +49,12 @@ public class UserRepository extends MyRepository<SysUser, String> implements IUs
         return super.queryPage("from SysUser", pageParams);
     }
 
-    public Future<Integer> update(SysUser sysUser) {
+    public Future<Boolean> update(SysUser sysUser) {
         Map<String, ?> params = Map.of("mobile", sysUser.getMobile(), "id", sysUser.getId());
         return super.update("update SysUser set mobile =:mobile where id =:id", params);
     }
 
-    public Future<Integer> deleteById(String id) {
+    public Future<Boolean> deleteById(String id) {
         return super.delete(id);
     }
 
@@ -62,6 +63,9 @@ public class UserRepository extends MyRepository<SysUser, String> implements IUs
         return super.remove(sysUser);
     }
 
-
+    @Override
+    public Future<List<SysUser>> saveBatch(List<SysUser> collect) {
+        return super.batchSave(collect);
+    }
 }
 

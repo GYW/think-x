@@ -16,11 +16,8 @@ import org.hibernate.reactive.mutiny.Mutiny;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaDelete;
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -85,13 +82,13 @@ public abstract class MyRepository<T extends BaseEntity<E>, E extends Serializab
 
     @Nullable
     @Override
-    public Future<Integer> update(@NotNull String sql, @NotNull Map<String, ?> params) {
-        Promise<Integer> promise = new PromiseImpl<>();
+    public Future<Boolean> update(@NotNull String sql, @NotNull Map<String, ?> params) {
+        Promise<Boolean> promise = new PromiseImpl<>();
         sessionFactory.withTransaction((session, transaction) -> {
             Mutiny.Query<Integer> query = session.createQuery(sql);
             params.forEach(query::setParameter);
             return query.executeUpdate().call(session::flush);
-        }).subscribe().with(promise::complete, promise::fail);
+        }).chain(t -> Uni.createFrom().item(t > 0)).subscribe().with(p -> promise.complete(p), promise::fail);
         return promise.future();
     }
 
@@ -108,26 +105,36 @@ public abstract class MyRepository<T extends BaseEntity<E>, E extends Serializab
 
     @Nullable
     @Override
-    public Future<Boolean> batchSave(@NotNull Collection<T> entities) {
-        return null;
+    public Future<List<T>> batchSave(@NotNull List<T> entities) {
+        Promise<List<T>> promise = new PromiseImpl<>();
+        sessionFactory.withTransaction((session, transaction) -> {
+                    return session.persistAll(entities.toArray()).call(session::flush).map(p -> entities);
+                }).subscribe()
+                .with(t -> promise.complete(entities), promise::fail);
+        return promise.future();
     }
 
     @Nullable
     @Override
-    public Future<Integer> delete(@Nullable E id) {
-        Promise<Integer> promise = new PromiseImpl<>();
+    public Future<Boolean> delete(@Nullable E id) {
+        Promise<Boolean> promise = new PromiseImpl<>();
         sessionFactory.withTransaction((session, transaction) -> {
             Mutiny.Query<Integer> query = session.createQuery("delete from " + target.getName() + " where id =: id");
             query.setParameter("id", id);
             return query.executeUpdate().call(session::flush);
-        }).subscribe().with(promise::complete, promise::fail);
+        }).chain(t -> Uni.createFrom().item(t > 0)).subscribe().with(p -> promise.complete(p), promise::fail);
         return promise.future();
     }
 
     @Nullable
     @Override
     public Future<Boolean> exists(@Nullable E id) {
-        return null;
+        Promise<Boolean> promise = new PromiseImpl<>();
+        sessionFactory.withTransaction((session, transaction) ->
+                        session.find(target, id).chain(t -> Uni.createFrom().item(!Objects.isNull(t))))
+                .subscribe()
+                .with(t -> promise.complete(Boolean.TRUE), promise::fail);
+        return promise.future();
     }
 
     @Nullable

@@ -10,7 +10,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
@@ -36,10 +35,10 @@ public interface CrudRepository<T extends BaseEntity<E>, E extends Serializable>
     Future<Void> remove(@NotNull T entity);
 
     @Nullable
-    Future<Boolean> batchSave(@NotNull Collection<T> entities);
+    Future<List<T>> batchSave(@NotNull List<T> entities);
 
     @Nullable
-    Future<Integer> delete(@Nullable E id);
+    Future<Boolean> delete(@Nullable E id);
 
     @Nullable
     Future<Boolean> exists(@Nullable E id);
@@ -75,7 +74,7 @@ public interface CrudRepository<T extends BaseEntity<E>, E extends Serializable>
      * @return
      */
     @Nullable
-    Future<Integer> update(@NotNull String sql, @NotNull Map<String, ?> params) ;
+    Future<Boolean> update(@NotNull String sql, @NotNull Map<String, ?> params);
 
     @Nullable
     Future<T> createQuery(BiFunction<Mutiny.Session, Mutiny.Transaction, Uni<T>> execution);

@@ -31,12 +31,17 @@ public class VertxAppLauncher {
     private static final String PATH = "config/config.yaml";
 
     public static void main(String[] args) {
+
+//        VertxOptions vertxOptions = new VertxOptions().setTracingOptions(new OpenTracingOptions(GlobalTracer.get()));
         Vertx vertx = Vertx.vertx();
         //依赖注入
         new GuiceIoc(vertx, Lists.newArrayList(MyVertxInjectModule.of()));
 
         GuiceVertxDeploymentManager deploymentManager = new GuiceVertxDeploymentManager(vertx);
-        ConfigStoreOptions store = new ConfigStoreOptions().setType("file").setFormat("yaml").setConfig(new JsonObject().put("path", PATH));
+        ConfigStoreOptions store = new ConfigStoreOptions()
+                .setType("file")
+                .setFormat("yaml")
+                .setConfig(new JsonObject().put("path", PATH));
         ConfigRetriever retriever = ConfigRetriever.create(vertx, new ConfigRetrieverOptions().addStore(store));
         retriever.getConfig(envConfig -> {
             if (envConfig.succeeded()) {
@@ -49,7 +54,6 @@ public class VertxAppLauncher {
                 //初始化jackson配置
                 JsonConfig jsonConfig = new JsonConfig();
                 jsonConfig.config();
-                //叫做
                 deploymentManager.deployVerticle(HttpServerVerticle.class, new DeploymentOptions().setConfig(server), r -> {
                     if (r.succeeded()) {
                         log.info("Vertx application is up and running");
