@@ -14,7 +14,8 @@
         <module>think-x-orm</module>
         <module>think-x-inject</module>
         <module>think-x-web</module>
-<!--        <module>think-x-log</module>-->
+        <module>think-x-net</module>
+        <!--        <module>think-x-log</module>-->
     </modules>
 
     <properties>
