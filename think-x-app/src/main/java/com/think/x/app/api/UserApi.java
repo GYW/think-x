@@ -59,12 +59,12 @@ public class UserApi extends CustomAbstractRoute {
     @Override
     public void init() {
         queryPage();
-        queryUserInfo();
         queryUsers();
         saveUser();
-        updateUser();
-        deleteUser();
         saveBatch();
+        deleteUser();
+        updateUser();
+        queryUserInfo();
         //TODO:: 增加API路由
     }
 
