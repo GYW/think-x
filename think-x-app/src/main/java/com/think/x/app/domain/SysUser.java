@@ -1,6 +1,7 @@
 package com.think.x.app.domain;
 
 import com.think.x.core.base.domain.BaseEntity;
+import lombok.Data;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
@@ -15,6 +16,7 @@ import javax.persistence.Table;
  * @date: 2023/2/24 11:20
  * @version: v1.0
  */
+@Data
 @Entity
 @Table(name = "sys_user")
 public class SysUser extends BaseEntity<String> {
@@ -22,22 +24,5 @@ public class SysUser extends BaseEntity<String> {
     private String username;
 
     private String mobile;
-
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getMobile() {
-        return mobile;
-    }
-
-    public void setMobile(String mobile) {
-        this.mobile = mobile;
-    }
 
 }
